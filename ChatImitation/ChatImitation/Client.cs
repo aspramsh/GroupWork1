@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace ChatImitation
 {
@@ -13,36 +8,54 @@ namespace ChatImitation
     /// A class for providing Client functionality
     /// </summary>
 	public class Client
-	{
+    {
         /// <summary>
-        /// A function that starts a Client
+        /// An endpoint for creating a socket in Client
         /// </summary>
-        /// <param name="iPAddress"></param>
-        /// <param name="portNumber"></param>
+        private IPEndPoint RemoteEP { get; set; }
+        /// <summary>
+        /// Client's socket
+        /// </summary>
+        private Socket Sender { get; set; }
+        /// <summary>
+        /// Client's constructor that initializes client's socket
+        /// </summary>
+        /// <param name="remoteEp"></param>
+        public Client(IPEndPoint remoteEp)
+        {
+            this.Sender = new Socket(AddressFamily.InterNetwork,
+                SocketType.Stream, ProtocolType.Tcp);
+            this.RemoteEP = remoteEp;
+            this.Sender.Connect(RemoteEP);
+        }
+        /// <summary>
+        /// A method that sends clients data to the server
+        /// </summary>
         /// <param name="name"></param>
         /// <param name="message"></param>
-        /// <param name="listbox"></param>
-		public void StartClient(System.Windows.Forms.TextBox iPAddress, 
-			System.Windows.Forms.TextBox portNumber, System.Windows.Forms.TextBox name,
-			System.Windows.Forms.TextBox message, System.Windows.Forms.RichTextBox textbox)
-		{
-			byte[] bytes = new byte[1024];
-			IPEndPoint remoteEP = new IPEndPoint(System.Net.IPAddress.Parse(iPAddress.Text), 
-				Int32.Parse(portNumber.Text));
-            // A socket for sending data to the server
-			Socket sender = new Socket(AddressFamily.InterNetwork, 
-				SocketType.Stream, ProtocolType.Tcp);
-			sender.Connect(remoteEP);
-			byte[] msg = Encoding.ASCII.GetBytes("Name: " + name.Text + " Message: " + message.Text + "<EOF>");
-			int bytesSent = sender.Send(msg);
-            // Receiving dat from the server
-            int bytesRec = sender.Receive(bytes);
-            sender.Shutdown(SocketShutdown.Both);
-			sender.Close();
-            textbox.Text = "";
-            textbox.Text = (Encoding.ASCII.GetString(bytes, 0, bytesRec));
+        public void SendData(System.Windows.Forms.TextBox name, System.Windows.Forms.TextBox message)
+        {
+            byte[] msg = Encoding.ASCII.GetBytes("Name: " + name.Text + " Message: " + message.Text + "<EOF>");
+            int bytesSent = Sender.Send(msg);
         }
-			
-		
+        /// <summary>
+        /// A method that gets data from the server
+        /// </summary>
+        /// <returns></returns>
+        public string GetData()
+        {
+            byte[] bytes = new byte[1024];
+            int bytesRec = this.Sender.Receive(bytes);
+            string Data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+            return Data;
+        }
+        /// <summary>
+        /// A method that closes client's socket
+        /// </summary>
+        public void CloseSocket()
+        {
+            Sender.Shutdown(SocketShutdown.Both);
+            Sender.Close();
+        }
 	}
 }

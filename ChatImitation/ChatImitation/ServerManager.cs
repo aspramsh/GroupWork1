@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+
 
 namespace ChatImitation
 {
@@ -42,7 +41,7 @@ namespace ChatImitation
 			listener.Listen(10);
 			while (true)
 			{
-                // A socket that acceps data transferred from a client
+                // A socket that accepts data transferred from a client
 				Socket handler = listener.Accept();
 				while (true)
 				{
@@ -60,13 +59,16 @@ namespace ChatImitation
                 // Adding received data to the database
                 ADOHandler.AddEntry(Form1.Manager.Parse(Form1.Manager.Data).Name, 
                     Form1.Manager.Parse(Form1.Manager.Data).Message);
-                // Getting all data from database
-                ADOHandler.GetAllEntries();
-                string entry = ADOHandler.data;
+                List<string> entries = ADOHandler.GetAllEntries();
                 // transforming data received from database into bytes
-                byte[] msg = Encoding.ASCII.GetBytes(entry);
+                List<ArraySegment<byte>> buffers = new List<ArraySegment<byte>>();
+                foreach (string entry in entries)
+                {
+                    ArraySegment<byte> msg = new ArraySegment<byte>(Encoding.ASCII.GetBytes(entry + "\n"));
+                    buffers.Add(msg);
+                }
                 // sending binary data back to the client / clients
-                handler.Send(msg);
+                handler.Send(buffers);
                 // Deactivating the socket
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();

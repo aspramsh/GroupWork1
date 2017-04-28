@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -24,7 +21,7 @@ namespace ChatImitation
             using (SqlConnection con = new SqlConnection
 					(ConfigurationManager.ConnectionStrings["ChatConnection"].ConnectionString))
 			{
-				string sql = "CREATE TABLE ChatTable(Name VARCHAR(15), Message VARCHAR(50));";
+				string sql = "CREATE TABLE ChatTable(Name VARCHAR(15), Message VARCHAR(500));";
 				con.Open();
                 try
                 {
@@ -61,13 +58,13 @@ namespace ChatImitation
                 cmd.ExecuteNonQuery();
             }
 		}
-        public static string data = "";
         /// <summary>
-        /// A method for getting all the data from datastore
+        /// A method that returns DB's rows as a list of strings
         /// </summary>
-        public static void GetAllEntries()
+        /// <returns></returns>
+        public static List<string> GetAllEntries()
         {
-            data = "";
+            List<string> data = new List<string>();
             using (SqlConnection con = new SqlConnection
                     (ConfigurationManager.ConnectionStrings["ChatConnection"].ConnectionString))
             {
@@ -77,11 +74,10 @@ namespace ChatImitation
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    data += ReadSingleRow((IDataRecord)reader) + "\n";
+                    data.Add(ReadSingleRow((IDataRecord)reader));
                 }
-
-                // Call Close when done reading.
                 reader.Close();
+                return data;
             }
         }
         /// <summary>

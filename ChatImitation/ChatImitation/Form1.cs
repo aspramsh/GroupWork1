@@ -1,14 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 
 namespace ChatImitation
@@ -49,8 +41,6 @@ namespace ChatImitation
 		private void startServerButton_Click(object sender, EventArgs e)
         {
             Manager = new ServerManager();
-            client = new Client();
-
             iPAddress.Text = serverIPAddress.Text;
             portNumber.Text = serverPortNumber.Text;
             (new Thread(() =>
@@ -60,16 +50,25 @@ namespace ChatImitation
             })).Start();
         }
         /// <summary>
-        /// A button that starts the client and updates clients listbox
+        /// A button that starts the client and updates clients richTextBox
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
 		private void addTextButton_Click(object sender, EventArgs e)
         {
+            // Creating end point for a client
+            IPEndPoint remoteEP = new IPEndPoint(System.Net.IPAddress.Parse(iPAddress.Text),
+                Int32.Parse(portNumber.Text));
+            // Creating client object
+            client = new Client(remoteEP);
             Manager.Data = null;
-            client.StartClient(iPAddress, portNumber, nameBox, messageBox, updateBox);
+            client.SendData(nameBox, messageBox);
             nameBox.Text = "";
             messageBox.Text = "";
+            String message = client.GetData();
+            client.CloseSocket();
+            // updating richTextBox with the data received from the client
+            updateBox.Text = message;
         }
     }
 }
